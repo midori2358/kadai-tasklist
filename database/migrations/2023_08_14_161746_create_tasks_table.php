@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->string( 'content' ); //contentカラム
+            $table->string('content');    // contentカラム追加
             $table->timestamps();
         });
     }
