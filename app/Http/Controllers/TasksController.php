@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Task;
+use App\Models\User;//試験的追記
 
 class TasksController extends Controller
 {
@@ -15,12 +16,17 @@ class TasksController extends Controller
      */
     public function index()
     {
+        $data = [];
+        if (\Auth::check()) { // 認証済みの場合
         //タスク一覧を取得
         $tasks = Task::all();
         
-        return view('tasks.index',[
-            'tasks' => $tasks,
-        ]);
+        $data = [
+             'tasks' => $tasks,
+            ];
+        }
+        
+        return view('tasks.index',$data);
         
     }
 
@@ -54,13 +60,15 @@ class TasksController extends Controller
         ]);
         
        // タスクを作成
-        $task = new Task;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
+        // 認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値をもとに作成）
+        $request->user()->tasklists()->create([
+       
+        'status' => $request->status,
+        'content' => $request->content,
+       ]);
 
         // トップページへリダイレクトさせる
-        return redirect('/');
+        return redirect('/dashboard');
     }
 
     /**
@@ -71,13 +79,21 @@ class TasksController extends Controller
      */
     public function show($id)
     {
+        
          // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
+        
+         // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は投稿を編集
+         if (\Auth::id() === $task->user_id) {
+
 
         // メッセージ詳細ビューでそれを表示
         return view('tasks.show', [
             'task' => $task,
         ]);
+         }
+           // トップページへリダイレクトさせる
+        return redirect('/');
     }
 
     /**
@@ -90,11 +106,16 @@ class TasksController extends Controller
     {
         // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
+        
+        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は投稿を編集
+         if (\Auth::id() === $task->user_id) {
 
         // メッセージ編集ビューでそれを表示
         return view('tasks.edit', [
             'task' => $task,
         ]);
+         }
+           
     }
 
     /**
@@ -120,7 +141,7 @@ class TasksController extends Controller
         $task->save();
 
         // トップページへリダイレクトさせる
-        return redirect('/');
+        return redirect('/dashboard');
     }
 
     /**
@@ -131,12 +152,17 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-          // idの値でメッセージを検索して取得
+           // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
+        
+        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は投稿を削除
+         if (\Auth::id() === $task->user_id) {
+        
         // メッセージを削除
         $task->delete();
+       
+         }
 
-        // トップページへリダイレクトさせる
-        return redirect('/');
+        
     }
 }

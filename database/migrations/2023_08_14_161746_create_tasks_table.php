@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('content');    // contentカラム追加
             $table->timestamps();
+            
         });
     }
 
