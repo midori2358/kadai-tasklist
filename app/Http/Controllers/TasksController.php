@@ -18,8 +18,11 @@ class TasksController extends Controller
     {
         $data = [];
         if (\Auth::check()) { // 認証済みの場合
-        //タスク一覧を取得
-        $tasks = Task::all();
+        // 認証済みユーザを取得
+        $user = \Auth::user();
+        
+         //タスク一覧を取得
+        $tasks = $user->tasklists()->orderBy('created_at', 'desc')->paginate(10);
         
         $data = [
              'tasks' => $tasks,
@@ -115,6 +118,8 @@ class TasksController extends Controller
             'task' => $task,
         ]);
          }
+          // トップページへリダイレクトさせる
+        return redirect('/dashboard');
            
     }
 
@@ -163,6 +168,7 @@ class TasksController extends Controller
        
          }
 
-        
+         // トップページへリダイレクトさせる
+        return redirect('/dashboard');
     }
 }
